@@ -1,0 +1,299 @@
+[gd_scene load_steps=7 format=3 uid="uid://dpqxvpwqjlvff"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_1"]
+size = Vector3(0.1, 0.05, 0.3)
+
+[sub_resource type="SphereMesh" id="SphereMesh_1"]
+radius = 0.03
+height = 0.06
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1"]
+albedo_color = Color(1, 1, 0, 1)
+emission_enabled = true
+emission = Color(1, 1, 0, 1)
+
+[sub_resource type="GDScript" id="GDScript_1"]
+script/source = "extends CharacterBody3D
+
+@export var speed = 5.0
+@export var jump_velocity = 4.5
+@export var mouse_sensitivity = 0.003
+
+@onready var camera = $Camera3D
+
+var health = 100
+var max_health = 100
+var ammo = 30
+var max_ammo = 30
+var fire_rate = 0.1
+var fire_timer = 0.0
+var damage = 25
+var reload_time = 2.0
+var reload_timer = 0.0
+var is_reloading = false
+
+func _ready():
+	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	add_to_group(\"player\")
+	velocity = Vector3.ZERO
+	
+	# Ensure proper collision settings
+	floor_max_angle = 0.785398  # 45 degrees
+	floor_snap_length = 0.6  # Increase for better ground detection
+	floor_stop_on_slope = true
+	floor_constant_speed = false
+	floor_block_on_wall = true
+
+func _physics_process(delta):
+	# Handle reload timer
+	if is_reloading:
+		reload_timer -= delta
+		if reload_timer <= 0.0:
+			complete_reload()
+	
+	# Handle fire timer
+	if fire_timer > 0.0:
+		fire_timer -= delta
+	
+	# Handle reload input
+	if Input.is_action_just_pressed(\"reload\") and can_reload():
+		start_reload()
+	
+	# Handle shooting
+	if Input.is_action_pressed(\"shoot\") and can_fire():
+		fire()
+	
+	# Always apply gravity first (get_gravity().y is already negative)
+	velocity.y += get_gravity().y * delta
+	
+	# Handle jump
+	if Input.is_action_just_pressed(\"jump\") and is_on_floor():
+		velocity.y = jump_velocity
+		print(\"Jump! velocity.y = \", velocity.y)
+	
+	# Cap falling speed
+	velocity.y = clamp(velocity.y, -50.0, 50.0)
+
+	# Get input direction
+	var input_dir = Input.get_vector(\"move_left\", \"move_right\", \"move_forward\", \"move_backward\")
+	var direction = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
+	
+	if direction:
+		velocity.x = direction.x * speed
+		velocity.z = direction.z * speed
+	else:
+		velocity.x = move_toward(velocity.x, 0, speed)
+		velocity.z = move_toward(velocity.z, 0, speed)
+
+	move_and_slide()
+	
+	# Debug: show position and velocity info
+	if velocity.y > 10.0 or velocity.y < -10.0:
+		print(\"High Y velocity: \", velocity.y, \" Position: \", global_position.y, \" On floor: \", is_on_floor())
+	
+	# Safety check: if velocity is getting too high, reset it
+	if velocity.length() > 100.0:
+		print(\"WARNING: Velocity too high, resetting! Was: \", velocity)
+		velocity = Vector3.ZERO
+
+func _input(event):
+	if event is InputEventMouseMotion:
+		rotate_y(-event.relative.x * mouse_sensitivity)
+		camera.rotate_x(-event.relative.y * mouse_sensitivity)
+		camera.rotation.x = clamp(camera.rotation.x, -PI/2, PI/2)
+	
+	if Input.is_action_just_pressed(\"ui_cancel\"):
+		if Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
+			Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+		else:
+			Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+
+func can_fire() -> bool:
+	return fire_timer <= 0.0 and ammo > 0 and not is_reloading
+
+func fire():
+	if not can_fire():
+		return
+	
+	ammo -= 1
+	fire_timer = fire_rate
+	
+	# Show muzzle flash
+	show_muzzle_flash()
+	
+	# Add screen shake
+	add_screen_shake()
+	
+	# Perform raycast
+	var space_state = camera.get_world_3d().direct_space_state
+	var from = camera.global_position
+	var to = from + camera.global_transform.basis.z * -1000.0
+	
+	var query = PhysicsRayQueryParameters3D.create(from, to)
+	query.collision_mask = 0b1110  # Hit everything except player
+	
+	var result = space_state.intersect_ray(query)
+	
+	if result:
+		var hit_position = result.position
+		var collider = result.collider
+		
+		# Create impact effect
+		create_impact_effect(hit_position)
+		
+		# Deal damage if target can take it
+		if collider and collider.has_method(\"take_damage\"):
+			collider.take_damage(damage)
+		
+		print(\"Hit at: \", hit_position)
+
+func take_damage(damage_amount: int):
+	health -= damage_amount
+	health = max(0, health)
+	print(\"Player took \", damage_amount, \" damage! Health: \", health, \"/\", max_health)
+	
+	if health <= 0:
+		die()
+
+func die():
+	print(\"Player died!\")
+	get_tree().reload_current_scene()
+
+func get_health() -> int:
+	return health
+
+func get_max_health() -> int:
+	return max_health
+
+func get_ammo() -> int:
+	return ammo
+
+func can_reload() -> bool:
+	return not is_reloading and ammo < max_ammo
+
+func start_reload():
+	if not can_reload():
+		return
+	
+	is_reloading = true
+	reload_timer = reload_time
+	
+	print(\"Reloading... (\", reload_time, \" seconds)\")
+	
+	# Visual feedback - weapon disappears during reload
+	var weapon_model = camera.get_node(\"WeaponModel\")
+	weapon_model.visible = false
+
+func complete_reload():
+	is_reloading = false
+	ammo = max_ammo
+	
+	print(\"Reload complete! Ammo: \", ammo)
+	
+	# Show weapon again
+	var weapon_model = camera.get_node(\"WeaponModel\")
+	weapon_model.visible = true
+
+func get_is_reloading() -> bool:
+	return is_reloading
+
+func get_reload_progress() -> float:
+	if not is_reloading:
+		return 0.0
+	return 1.0 - (reload_timer / reload_time)
+
+func show_muzzle_flash():
+	var muzzle_flash = camera.get_node(\"MuzzleFlash\")
+	muzzle_flash.visible = true
+	
+	# Hide muzzle flash after short time
+	var timer = Timer.new()
+	add_child(timer)
+	timer.wait_time = 0.05
+	timer.one_shot = true
+	timer.timeout.connect(func():
+		muzzle_flash.visible = false
+		timer.queue_free()
+	)
+	timer.start()
+
+func add_screen_shake():
+	var shake_amount = 0.02
+	var original_pos = camera.position
+	
+	# Quick shake
+	camera.position = original_pos + Vector3(
+		randf_range(-shake_amount, shake_amount),
+		randf_range(-shake_amount, shake_amount),
+		0
+	)
+	
+	# Return to original position
+	var timer = Timer.new()
+	add_child(timer)
+	timer.wait_time = 0.1
+	timer.one_shot = true
+	timer.timeout.connect(func():
+		camera.position = original_pos
+		timer.queue_free()
+	)
+	timer.start()
+
+func create_impact_effect(position: Vector3):
+	# Create a small yellow sphere at impact point
+	var impact_node = MeshInstance3D.new()
+	var sphere_mesh = SphereMesh.new()
+	sphere_mesh.radius = 0.05
+	sphere_mesh.height = 0.1
+	
+	var impact_material = StandardMaterial3D.new()
+	impact_material.albedo_color = Color.YELLOW
+	impact_material.emission_enabled = true
+	impact_material.emission = Color.YELLOW
+	
+	impact_node.mesh = sphere_mesh
+	impact_node.material_override = impact_material
+	impact_node.global_position = position
+	
+	# Add to scene
+	get_tree().current_scene.add_child(impact_node)
+	
+	# Remove after short time
+	var timer = Timer.new()
+	get_tree().current_scene.add_child(timer)
+	timer.wait_time = 0.3
+	timer.one_shot = true
+	timer.timeout.connect(func():
+		impact_node.queue_free()
+		timer.queue_free()
+	)
+	timer.start()
+"
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_1"]
+
+[node name="Player" type="CharacterBody3D" groups=["player"]]
+collision_layer = 1
+collision_mask = 2
+script = SubResource("GDScript_1")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape3D_1")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("CapsuleMesh_1")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+
+[node name="WeaponModel" type="MeshInstance3D" parent="Camera3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, -0.2, -0.5)
+mesh = SubResource("BoxMesh_1")
+
+[node name="MuzzleFlash" type="MeshInstance3D" parent="Camera3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, -0.2, -0.65)
+visible = false
+material_override = SubResource("StandardMaterial3D_1")
+mesh = SubResource("SphereMesh_1")
