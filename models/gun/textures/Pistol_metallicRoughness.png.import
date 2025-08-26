@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://c2q36inylj7ww"
 path.s3tc="res://.godot/imported/Pistol_metallicRoughness.png-a1ecec762416a8f8352f235eb6b73f7e.s3tc.ctex"
+path.etc2="res://.godot/imported/Pistol_metallicRoughness.png-a1ecec762416a8f8352f235eb6b73f7e.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://models/gun/textures/Pistol_metallicRoughness.png"
-dest_files=["res://.godot/imported/Pistol_metallicRoughness.png-a1ecec762416a8f8352f235eb6b73f7e.s3tc.ctex"]
+dest_files=["res://.godot/imported/Pistol_metallicRoughness.png-a1ecec762416a8f8352f235eb6b73f7e.s3tc.ctex", "res://.godot/imported/Pistol_metallicRoughness.png-a1ecec762416a8f8352f235eb6b73f7e.etc2.ctex"]
 
 [params]
 

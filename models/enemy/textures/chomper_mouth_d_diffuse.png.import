@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://t1rnukf4bmhb"
 path.s3tc="res://.godot/imported/chomper_mouth_d_diffuse.png-934a2926fb03362c916120e11bc6b81e.s3tc.ctex"
+path.etc2="res://.godot/imported/chomper_mouth_d_diffuse.png-934a2926fb03362c916120e11bc6b81e.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://models/enemy/textures/chomper_mouth_d_diffuse.png"
-dest_files=["res://.godot/imported/chomper_mouth_d_diffuse.png-934a2926fb03362c916120e11bc6b81e.s3tc.ctex"]
+dest_files=["res://.godot/imported/chomper_mouth_d_diffuse.png-934a2926fb03362c916120e11bc6b81e.s3tc.ctex", "res://.godot/imported/chomper_mouth_d_diffuse.png-934a2926fb03362c916120e11bc6b81e.etc2.ctex"]
 
 [params]
 

@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://d0jxb0t65q0k8"
 path.s3tc="res://.godot/imported/Pistol_baseColor.png-c06a5eea9ac015a566cfef8d045b3df0.s3tc.ctex"
+path.etc2="res://.godot/imported/Pistol_baseColor.png-c06a5eea9ac015a566cfef8d045b3df0.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://models/gun/textures/Pistol_baseColor.png"
-dest_files=["res://.godot/imported/Pistol_baseColor.png-c06a5eea9ac015a566cfef8d045b3df0.s3tc.ctex"]
+dest_files=["res://.godot/imported/Pistol_baseColor.png-c06a5eea9ac015a566cfef8d045b3df0.s3tc.ctex", "res://.godot/imported/Pistol_baseColor.png-c06a5eea9ac015a566cfef8d045b3df0.etc2.ctex"]
 
 [params]
 

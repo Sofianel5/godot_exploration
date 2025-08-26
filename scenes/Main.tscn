@@ -4,11 +4,24 @@
 [ext_resource type="PackedScene" uid="uid://bh8yn4qxd8w7h" path="res://scenes/Enemy.tscn" id="2_3k9m4"]
 [ext_resource type="PackedScene" uid="uid://cjxm7y4n8p2qr" path="res://scenes/UI.tscn" id="3_ui"]
 [ext_resource type="PackedScene" path="res://models/garden/scene.gltf" id="4_garden"]
+[ext_resource type="Script" path="res://scripts/Main.gd" id="5_main_script"]
 
 [sub_resource type="GDScript" id="GDScript_1"]
 script/source = "extends Node3D
 
 var enemy_scene = preload(\"res://scenes/Enemy.tscn\")
+
+@onready var multiplayer_spawner = $MultiplayerSpawner
+@onready var enemy_spawner = $EnemySpawner
+@onready var players_node = $Players
+@onready var enemies_node = $Enemies
+
+var player_spawn_points = [
+	Vector3(0, 1.1, 0),     # Host spawn
+	Vector3(5, 1.1, 0),     # Client spawn  
+	Vector3(-5, 1.1, 0),    # Additional spawns
+	Vector3(0, 1.1, 5)
+]
 var spawn_points = [
 	Vector3(5, 1.0, 5),      # Clear area 
 	Vector3(-5, 1.0, -5),    # Clear area  
@@ -148,7 +161,18 @@ fog_light_color = Color(0.4, 0.5, 0.6, 1)
 fog_sun_scatter = 0.2
 
 [node name="Main" type="Node3D"]
-script = SubResource("GDScript_1")
+script = ExtResource("5_main_script")
+
+[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
+spawn_path = NodePath("../Players")
+
+[node name="EnemySpawner" type="MultiplayerSpawner" parent="."]
+spawn_path = NodePath("../Enemies")
+player_spawnable = false
+
+[node name="Players" type="Node3D" parent="."]
+
+[node name="Enemies" type="Node3D" parent="."]
 
 [node name="Environment" type="Node3D" parent="."]
 
@@ -195,10 +219,10 @@ light_energy = 0.3
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_1")
 
-[node name="Player" parent="." instance=ExtResource("1_0x8b2")]
+[node name="Player" parent="Players" instance=ExtResource("1_0x8b2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
 
-[node name="Enemy" parent="." instance=ExtResource("2_3k9m4")]
+[node name="Enemy" parent="Enemies" instance=ExtResource("2_3k9m4")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 1.0, 8)
 
 [node name="UI" parent="." instance=ExtResource("3_ui")]

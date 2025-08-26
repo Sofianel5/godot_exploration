@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="FPS Game"
-run/main_scene="res://scenes/Main.tscn"
+run/main_scene="res://scenes/Lobby.tscn"
 config/features=PackedStringArray("4.4", "Forward Plus")
 config/icon="res://icon.svg"
 
@@ -59,3 +59,7 @@ reload={
 3d_physics/layer_2="Environment"
 3d_physics/layer_3="Enemies"
 3d_physics/layer_4="Projectiles"
+
+[rendering]
+
+textures/vram_compression/import_etc2_astc=true

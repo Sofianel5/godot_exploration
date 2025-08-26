@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://51j2urdsnr3e"
 path.s3tc="res://.godot/imported/Glass2_baseColor.png-7dc09f48b717ecf029db0d1fe3ba4a3e.s3tc.ctex"
+path.etc2="res://.godot/imported/Glass2_baseColor.png-7dc09f48b717ecf029db0d1fe3ba4a3e.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://models/gun/textures/Glass2_baseColor.png"
-dest_files=["res://.godot/imported/Glass2_baseColor.png-7dc09f48b717ecf029db0d1fe3ba4a3e.s3tc.ctex"]
+dest_files=["res://.godot/imported/Glass2_baseColor.png-7dc09f48b717ecf029db0d1fe3ba4a3e.s3tc.ctex", "res://.godot/imported/Glass2_baseColor.png-7dc09f48b717ecf029db0d1fe3ba4a3e.etc2.ctex"]
 
 [params]
 
