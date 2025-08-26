@@ -1,0 +1,11 @@
+Model Information:
+* title:	Garden
+* source:	https://sketchfab.com/3d-models/garden-0561cd730cec40e388df029fa3e4568a
+* author:	Rail_Lin (https://sketchfab.com/Rail_Lin)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Garden" (https://sketchfab.com/3d-models/garden-0561cd730cec40e388df029fa3e4568a) by Rail_Lin (https://sketchfab.com/Rail_Lin) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

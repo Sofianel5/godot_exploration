@@ -1,5 +1,7 @@
 [gd_scene load_steps=7 format=3 uid="uid://dpqxvpwqjlvff"]
 
+[ext_resource type="PackedScene" path="res://models/gun/scene.gltf" id="7_gun"]
+
 [sub_resource type="BoxMesh" id="BoxMesh_1"]
 size = Vector3(0.1, 0.05, 0.3)
 
@@ -32,6 +34,10 @@ var reload_time = 2.0
 var reload_timer = 0.0
 var is_reloading = false
 
+# Respawn system
+var respawn_height = -20.0  # If player falls below this, respawn
+var respawn_position = Vector3(0, 1.1, 0)  # Safe spawn position
+
 func _ready():
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	add_to_group(\"player\")
@@ -39,10 +45,17 @@ func _ready():
 	
 	# Ensure proper collision settings
 	floor_max_angle = 0.785398  # 45 degrees
-	floor_snap_length = 0.6  # Increase for better ground detection
+	floor_snap_length = 2.0  # Much stronger ground snapping
 	floor_stop_on_slope = true
-	floor_constant_speed = false
+	floor_constant_speed = true  # More consistent movement
 	floor_block_on_wall = true
+	
+	# Additional safety margin for floor detection
+	safe_margin = 0.1
+	
+	# Additional physics stability
+	motion_mode = CharacterBody3D.MOTION_MODE_GROUNDED
+	platform_floor_layers = 2  # Only treat layer 2 as floor
 
 func _physics_process(delta):
 	# Handle reload timer
@@ -87,9 +100,8 @@ func _physics_process(delta):
 
 	move_and_slide()
 	
-	# Debug: show position and velocity info
-	if velocity.y > 10.0 or velocity.y < -10.0:
-		print(\"High Y velocity: \", velocity.y, \" Position: \", global_position.y, \" On floor: \", is_on_floor())
+	# Check for falling through map
+	check_respawn_conditions()
 	
 	# Safety check: if velocity is getting too high, reset it
 	if velocity.length() > 100.0:
@@ -167,6 +179,47 @@ func get_max_health() -> int:
 
 func get_ammo() -> int:
 	return ammo
+
+func check_respawn_conditions():
+	# Check if player fell through the map
+	if global_position.y < respawn_height:
+		respawn_player()
+
+func respawn_player():
+	print(\"Player fell through map! Respawning at safe location...\")
+	
+	# Reset position and velocity
+	global_position = respawn_position
+	velocity = Vector3.ZERO
+	
+	# Take some damage as penalty
+	take_damage(20)
+	
+	# Brief invincibility flash effect
+	show_respawn_effect()
+
+func show_respawn_effect():
+	# Flash the screen or player model briefly
+	var mesh_instance = $MeshInstance3D
+	var original_material = mesh_instance.material_override
+	
+	# Flash white briefly
+	var flash_material = StandardMaterial3D.new()
+	flash_material.albedo_color = Color.WHITE
+	flash_material.emission_enabled = true
+	flash_material.emission = Color.WHITE
+	mesh_instance.material_override = flash_material
+	
+	# Return to normal after brief flash
+	var timer = Timer.new()
+	add_child(timer)
+	timer.wait_time = 0.2
+	timer.one_shot = true
+	timer.timeout.connect(func():
+		mesh_instance.material_override = original_material
+		timer.queue_free()
+	)
+	timer.start()
 
 func can_reload() -> bool:
 	return not is_reloading and ammo < max_ammo
@@ -288,9 +341,8 @@ mesh = SubResource("CapsuleMesh_1")
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 
-[node name="WeaponModel" type="MeshInstance3D" parent="Camera3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, -0.2, -0.5)
-mesh = SubResource("BoxMesh_1")
+[node name="WeaponModel" parent="Camera3D" instance=ExtResource("7_gun")]
+transform = Transform3D(-0.0021, 0, 0, 0, 0.0021, 0, 0, 0, -0.0021, 0.3, -0.3, -0.8)
 
 [node name="MuzzleFlash" type="MeshInstance3D" parent="Camera3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, -0.2, -0.65)
